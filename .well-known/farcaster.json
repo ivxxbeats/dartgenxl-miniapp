@@ -1,16 +1,20 @@
-﻿{
+{
   "accountAssociation": {
-    "header":
-    "payload":
-    "signature":
+    "header": "eyJmaWQiOjE0MzY0LCJ0eXBlIjoiY3VzdG9keSIsImtleSI6IjB4NzcxRTQ1ZTgxQTdEN2I3MjFDNkE4RDBBNWExMDY4ODdjQzNkRmZFMCJ9",
+    "payload": "eyJkb21haW4iOiJkYXJ0bGFicy5tZSJ9",
+    "signature": "Z0vkxAB87kqC+2bZrJto+/M7xAn6uSfUCwr3lLWf3msZuQl6CvKKvclLFzovj1lmakj1fy7p+AhD0CRmEIALCxs="
   },
   "miniapp": {
     "version": "1",
     "name": "Dart GenXL",
-    "iconUrl": "https://ivxxbeats.github.io/dartgenxl-miniapp/hero.png",
-    "homeUrl": "https://ivxxbeats.github.io/dartgenxl-miniapp/",
+    "iconUrl": "https://ivxxbeats.github.io/3.png",
+    "homeUrl": "https://ivxxbeats.github.io/",
+    "imageUrl": "https://ivxxbeats.github.io/3.png",
+    "splashImageUrl": "https://ivxxbeats.github.io/splash.png",
+    "splashBackgroundColor": "#0d0d12",
+    "subtitle": "Deterministic generative art",
     "description": "Deterministic generative art on Farcaster",
-    "splashImageUrl": "https://ivxxbeats.github.io/dartgenxl-miniapp/splash.png",
-    "splashBackgroundColor": "#0d0d12"
+    "primaryCategory": "art-creativity",
+    "heroImageUrl": "https://ivxxbeats.github.io/3.png"
   }
 }
