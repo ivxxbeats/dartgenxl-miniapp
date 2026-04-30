@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DART GENXL - MINT</title>
+    <style>
+        body {
+            background: #0a0a0f;
+            color: #e8e8f0;
+            font-family: monospace;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: #111116;
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        input, button {
+            background: #0d0d12;
+            color: #e8e8f0;
+            border: 1px solid #aa88ff;
+            padding: 12px 20px;
+            border-radius: 40px;
+            font-family: monospace;
+            font-size: 16px;
+            width: 100%;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1a1a24;
+        }
+        .preview {
+            margin: 20px 0;
+        }
+        canvas {
+            border-radius: 16px;
+            width: 100%;
+            max-width: 300px;
+        }
+        .status {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #aa88ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ MINT DART GENXL</h1>
+        <p>Token ID will be generated randomly or select one</p>
+        
+        <input type="number" id="tokenId" placeholder="Token ID (1-9999)" value="">
+        <button id="randomBtn">🎲 RANDOM</button>
+        <button id="previewBtn">👁️ PREVIEW</button>
+        
+        <div class="preview">
+            <canvas id="previewCanvas" width="300" height="300"></canvas>
+        </div>
+        
+        <button id="mintBtn" style="background: #aa88ff; color: #0d0d12;">🔷 CONNECT WALLET & MINT</button>
+        
+        <div class="status" id="status">Ready to mint</div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@farcaster/miniapp-sdk@latest/dist/sdk.js"></script>
+    <script src="engine.js"></script>
+    <script>
+        let currentTokenId = 1;
+        let walletConnected = false;
+        let walletAddress = '';
+        
+        const canvas = document.getElementById('previewCanvas');
+        const tokenInput = document.getElementById('tokenId');
+        const statusDiv = document.getElementById('status');
+        
+        function showPreview() {
+            const tokenId = tokenInput.value || currentTokenId;
+            currentTokenId = tokenId;
+            const txHash = '0xmintpreview';
+            
+            try {
+                const result = DartHLGEN.renderCanonical(tokenId, txHash);
+                DartHLGEN.drawToCanvas(canvas, result);
+                statusDiv.innerHTML = `Preview for token #${tokenId} ready`;
+            } catch(e) {
+                statusDiv.innerHTML = 'Preview error: ' + e.message;
+            }
+        }
+        
+        function randomToken() {
+            const randomId = Math.floor(Math.random() * 9999) + 1;
+            tokenInput.value = randomId;
+            showPreview();
+        }
+        
+        async function connectWallet() {
+            statusDiv.innerHTML = 'Connecting wallet...';
+            
+            if (window.sdk && window.sdk.wallet) {
+                try {
+                    const provider = await window.sdk.wallet.getEthereumProvider();
+                    const accounts = await provider.request({ method: 'eth_requestAccounts' });
+                    walletAddress = accounts[0];
+                    walletConnected = true;
+                    statusDiv.innerHTML = `Connected: ${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}`;
+                    return true;
+                } catch(e) {
+                    statusDiv.innerHTML = 'Connection failed: ' + e.message;
+                    return false;
+                }
+            } else {
+                statusDiv.innerHTML = 'Mini App SDK not loaded. Use Warpcast.';
+                return false;
+            }
+        }
+        
+        async function mint() {
+            if (!walletConnected) {
+                const connected = await connectWallet();
+                if (!connected) return;
+            }
+            
+            const tokenId = tokenInput.value || currentTokenId;
+            statusDiv.innerHTML = `Minting token #${tokenId}...`;
+            
+            // Here you would call your smart contract
+            // For now, show coming soon
+            statusDiv.innerHTML = `✨ Minting for token #${tokenId} coming soon. Contract not deployed yet.`;
+        }
+        
+        document.getElementById('randomBtn').onclick = randomToken;
+        document.getElementById('previewBtn').onclick = showPreview;
+        document.getElementById('mintBtn').onclick = mint;
+        
+        tokenInput.onkeypress = (e) => { if (e.key === 'Enter') showPreview(); };
+        
+        // Load random preview on page load
+        randomToken();
+        
+        // Call ready
+        if (window.sdk && window.sdk.actions) {
+            window.sdk.actions.ready();
+        }
+    </script>
+</body>
+</html>
