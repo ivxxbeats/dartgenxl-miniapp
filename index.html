@@ -2,240 +2,996 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>DART GENXL</title>
-
-    <!-- Farcaster Mini App Embed Meta Tags -->
-    <meta property="fc:frame" content="vNext" />
-    <meta property="fc:frame:image" content="https://dartlabs.me/3.png" />
-    <meta property="fc:frame:button:1" content="OPEN MINI APP" />
-    <meta property="fc:frame:button:1:action" content="launch_frame" />
-    <meta property="fc:frame:button:1:target" content="https://dartlabs.me/?tid={tid}" />
-
-    <!-- Open Graph for social preview -->
-    <meta property="og:title" content="Dart Labs XLGEN" />
-    <meta property="og:description" content="Living deterministic generative art" />
-    <meta property="og:image" content="https://dartlabs.me/3.png" />
-
-    <!-- Farcaster Mini App meta tags -->
-    <meta property="of:version" content="vNext" />
-    <meta property="of:accepts:xmtp" content="2024-02-01" />
-    <meta name="farcaster:miniapp" content="true" />
-
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: 'unsafe-eval' 'unsafe-inline'; script-src 'self' https: 'unsafe-eval' 'unsafe-inline'; connect-src 'self' https: https://ph.neynar.com; style-src 'self' https: 'unsafe-inline';">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>DART GENXL // MINT + VIEWER</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,500;14..32,600&display=swap');
+        
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #0a0a0f; min-height: 100vh; display: flex; justify-content: center; align-items: center; font-family: monospace; padding: 20px; }
-        .container { background: #111116; border-radius: 24px; padding: 20px; max-width: 720px; width: 100%; }
-        canvas { display: block; margin: 0 auto; border-radius: 16px; width: 100%; height: auto; background: #050508; cursor: pointer; }
-
-        .intensity-bar-container { margin-top: 16px; background: #1a1a22; border-radius: 20px; height: 6px; width: 100%; overflow: hidden; }
-        .intensity-bar-fill { background: linear-gradient(90deg, #5a5aff, #aa88ff); width: 0%; height: 100%; transition: width 0.1s ease; border-radius: 20px; }
-        .intensity-label { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 9px; color: #8888aa; }
-        .intensity-value { color: #aa88ff; font-weight: bold; }
-
-        .info-panel { margin-top: 16px; background: #0d0d12; border-radius: 16px; padding: 14px; }
-        .traits-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
-        .trait-item { font-size: 10px; color: #8888aa; font-family: monospace; }
+        
+        body {
+            background: #0a0a0f;
+            min-height: 100vh;
+            font-family: 'Inter', 'System-ui', -apple-system, monospace;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        
+        .app-container {
+            max-width: 720px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        /* ── TABS ── */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: #111116;
+            border-radius: 24px;
+            padding: 4px;
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
+        }
+        
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            color: #666688;
+            border: none;
+            padding: 12px 16px;
+            font-family: 'Inter', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: all 0.25s;
+        }
+        
+        .tab-btn.active {
+            background: #1a1a24;
+            color: #e8e8f0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tab-btn:hover:not(.active) {
+            color: #aa88ff;
+        }
+        
+        /* ── TAB PANELS ── */
+        .tab-panel {
+            display: none;
+        }
+        
+        .tab-panel.active {
+            display: block;
+        }
+        
+        /* ── CARD ── */
+        .card {
+            background: #111116;
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .card-title {
+            color: #e8e8f0;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+        
+        .version-badge {
+            font-size: 9px;
+            color: #5a5aff;
+            background: rgba(90, 90, 255, 0.1);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-family: monospace;
+        }
+        
+        /* ── BLIND MINT SECTION ── */
+        .blind-mint-art {
+            width: 100%;
+            max-width: 320px;
+            margin: 0 auto 20px;
+            display: block;
+            border-radius: 16px;
+            background: #050508;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .mint-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .mint-price {
+            font-size: 28px;
+            font-weight: 600;
+            color: #e8e8f0;
+            letter-spacing: -0.5px;
+        }
+        
+        .mint-price span {
+            font-size: 14px;
+            color: #8888aa;
+            font-weight: 400;
+        }
+        
+        .mint-supply {
+            font-size: 10px;
+            color: #666688;
+            margin-top: 4px;
+        }
+        
+        .mint-btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #5a5aff, #aa88ff);
+            color: #ffffff;
+            border: none;
+            border-radius: 40px;
+            font-family: 'Inter', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 24px rgba(90, 90, 255, 0.3);
+        }
+        
+        .mint-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(90, 90, 255, 0.4);
+        }
+        
+        .mint-btn:disabled {
+            background: #1a1a24;
+            color: #555577;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        
+        .mint-btn.minting {
+            animation: pulse 1s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .blind-note {
+            text-align: center;
+            font-size: 9px;
+            color: #555577;
+            margin-top: 12px;
+            letter-spacing: 0.5px;
+        }
+        
+        .blind-note span {
+            color: #5a5aff;
+        }
+        
+        /* ── VIEWER SECTION ── */
+        .viewer-input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .viewer-input-group input {
+            flex: 1;
+        }
+        
+        .token-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px;
+            margin-top: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .token-thumb {
+            aspect-ratio: 1;
+            background: #0d0d12;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            color: #8888aa;
+            border: 1px solid transparent;
+        }
+        
+        .token-thumb:hover {
+            border-color: #5a5aff;
+            color: #e8e8f0;
+        }
+        
+        .token-thumb.selected {
+            border-color: #aa88ff;
+            background: #1a1a24;
+        }
+        
+        /* ── CANVAS ── */
+        canvas {
+            display: block;
+            margin: 0 auto;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            height: auto;
+            max-width: 640px;
+            background: #050508;
+        }
+        
+        /* ── INTENSITY ── */
+        .intensity-section {
+            margin-top: 20px;
+            background: #0d0d12;
+            border-radius: 16px;
+            padding: 14px;
+        }
+        
+        .intensity-label {
+            color: #aaaacc;
+            font-size: 11px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .intensity-bar-container {
+            background: #1a1a22;
+            border-radius: 20px;
+            height: 6px;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .intensity-bar-fill {
+            background: linear-gradient(90deg, #5a5aff, #aa88ff);
+            width: 0%;
+            height: 100%;
+            transition: width 0.05s linear;
+            border-radius: 20px;
+        }
+        
+        .mode-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            background: #0d0d12;
+            border-radius: 20px;
+            color: #8888aa;
+        }
+        
+        .mode-badge.live { background: linear-gradient(135deg, #5a5aff20, #aa88ff20); color: #aa88ff; }
+        .mode-badge.static { background: #0d0d12; color: #666688; }
+        .mode-badge.boot { background: linear-gradient(135deg, #ffaa5520, #ff885520); color: #ffaa55; animation: pulse 1s ease-in-out infinite; }
+        .mode-badge.echo { background: linear-gradient(135deg, #5a5aff20, #88aaff20); color: #88aaff; }
+        .mode-badge.rupture { background: linear-gradient(135deg, #ff555520, #ff885520); color: #ff7755; }
+        .mode-badge.canonical { background: linear-gradient(135deg, #55ffaa20, #88ffcc20); color: #55ffaa; }
+        
+        /* ── TRAITS ── */
+        .traits-panel {
+            margin-top: 16px;
+            background: #0d0d12;
+            border-radius: 16px;
+            padding: 14px;
+        }
+        
+        .traits-title {
+            color: #aaaacc;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .traits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 8px;
+        }
+        
+        .trait-item {
+            font-size: 10px;
+            color: #8888aa;
+            font-family: monospace;
+        }
+        
         .trait-item span:first-child { color: #666688; }
         .trait-item span:last-child { color: #e8e8f0; font-weight: 500; }
-        .controls { margin-top: 16px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-        input, button { background: #0d0d12; color: #e8e8f0; border: 1px solid rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 40px; font-family: monospace; cursor: pointer; }
-        button:hover { background: #1a1a24; border-color: #aa88ff; }
-        .mint-btn { background: #aa88ff; color: #0d0d12; border: none; font-weight: bold; }
-        .mint-btn:hover { background: #8855ff; }
-        .status { margin-top: 14px; font-size: 9px; color: #666688; text-align: center; }
-        .cursor { display: inline-block; width: 6px; height: 10px; background: #aa88ff; animation: blink 1s step-end infinite; margin-left: 4px; border-radius: 1px; }
-        @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
-        .live-badge { position: fixed; bottom: 10px; right: 10px; background: #ffaa5520; color: #ffaa55; padding: 4px 12px; border-radius: 20px; font-size: 9px; font-family: monospace; }
+        
+        .token-id-display {
+            margin-top: 8px;
+            text-align: center;
+            font-size: 11px;
+            color: #5a5aff;
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+        
+        .seed-display {
+            font-size: 8px;
+            color: #555577;
+            margin-top: 4px;
+            text-align: center;
+            font-family: monospace;
+        }
+        
+        .canonical-value { color: #5a5aff !important; }
+        
+        /* ── CONTROLS ── */
+        .controls {
+            margin-top: 16px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        input, button {
+            background: #0d0d12;
+            color: #e8e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 14px;
+            font-family: 'Inter', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 40px;
+        }
+        
+        input { background: #0a0a0f; }
+        input:hover, button:hover {
+            background: #1a1a24;
+            border-color: rgba(170, 136, 255, 0.5);
+        }
+        
+        #freezeBtn.active {
+            background: #1a1a24;
+            border-color: #aa88ff;
+            color: #aa88ff;
+        }
+        
+        .status {
+            margin-top: 14px;
+            font-size: 9px;
+            color: #666688;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+        
+        .cursor {
+            display: inline-block;
+            width: 6px;
+            height: 10px;
+            background: #aa88ff;
+            vertical-align: middle;
+            animation: blink 1s step-end infinite;
+            margin-left: 4px;
+            border-radius: 1px;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        .fetch-status { font-size: 8px; margin-left: 8px; }
+        .fetch-status.success { color: #5a5aff; }
+        .fetch-status.error { color: #ff6666; }
+        
+        .boot-indicator {
+            margin-top: 8px;
+            font-size: 8px;
+            text-align: center;
+            letter-spacing: 1px;
+            animation: pulse 1s ease-in-out infinite;
+        }
+        
+        .boot-indicator.echo { color: #88aaff; }
+        .boot-indicator.rupture { color: #ff7755; }
+        .boot-indicator.canonical { color: #55ffaa; }
+        
+        .engine-identity {
+            margin-top: 6px;
+            font-size: 7px;
+            color: #555577;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+        
+        /* ── WALLET ── */
+        .wallet-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 10px;
+            color: #8888aa;
+        }
+        
+        .wallet-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff5555;
+        }
+        
+        .wallet-dot.connected {
+            background: #55ffaa;
+        }
+        
+        .connect-btn {
+            font-size: 10px;
+            padding: 6px 12px;
+        }
+        
+        @media (max-width: 640px) {
+            .app-container { gap: 12px; }
+            .card { padding: 16px; }
+            .traits-grid { grid-template-columns: 1fr; }
+            .mint-price { font-size: 24px; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <canvas id="artCanvas" width="640" height="640"></canvas>
-
-        <div class="intensity-bar-container">
-            <div class="intensity-label">
-                <span>LIVE INTENSITY</span>
-                <span class="intensity-value" id="intensityPercent">0%</span>
-            </div>
-            <div class="intensity-bar-fill" id="intensityBar"></div>
+    <div class="app-container">
+        <!-- ── TABS ── -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="mint">◉ MINT</button>
+            <button class="tab-btn" data-tab="viewer">◉ VIEWER</button>
+            <button class="tab-btn" data-tab="preview">◉ PREVIEW</button>
         </div>
-
-        <div class="info-panel">
-            <div class="traits-grid" id="traitsGrid">
-                <div class="trait-item"><span>ENGINE:</span> <span id="traitEngine">—</span></div>
-                <div class="trait-item"><span>VARIANT:</span> <span id="traitEngineVar">—</span></div>
-                <div class="trait-item"><span>RARITY:</span> <span id="traitRarity">—</span></div>
-                <div class="trait-item"><span>ARCHETYPE:</span> <span id="traitArchetype">—</span></div>
-                <div class="trait-item"><span>ANCHOR:</span> <span id="traitAnchor">—</span></div>
-                <div class="trait-item"><span>DRIVER:</span> <span id="traitDriver">—</span></div>
-                <div class="trait-item"><span>SPATIAL:</span> <span id="traitSpatial">—</span></div>
-                <div class="trait-item"><span>FAILURE:</span> <span id="traitFailure">—</span></div>
-                <div class="trait-item"><span>ANOMALY:</span> <span id="traitAnomaly">—</span></div>
-                <div class="trait-item"><span>MICRO:</span> <span id="traitMicro">—</span></div>
-                <div class="trait-item"><span>EVENT SCORE:</span> <span id="traitES">—</span></div>
-                <div class="trait-item"><span>CANONICAL INT:</span> <span id="traitCanonicalInt">—</span></div>
-            </div>
-        </div>
-        <div class="controls">
-            <input type="text" id="tokenInput" placeholder="TOKEN ID" value="1">
-            <input type="text" id="hashInput" placeholder="TX HASH" value="0xminiapp">
-            <button id="renderBtn">RENDER</button>
-            <button id="randomBtn">RANDOM</button>
-            <button id="aboutBtn">ABOUT</button>
-            <button id="mintBtn" class="mint-btn">✨ MINT</button>
-        </div>
-        <div class="status" id="status">DART GENXL READY <span class="cursor"></span></div>
-    </div>
-    <div class="live-badge">⚡ PRESSURE SENSITIVE</div>
-
-    <script type="module">
-        import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk';
-
-        function waitForEngine() {
-            return new Promise((resolve) => {
-                if (typeof DartHLGEN !== 'undefined') {
-                    resolve();
-                    return;
-                }
-                const checkInterval = setInterval(() => {
-                    if (typeof DartHLGEN !== 'undefined') {
-                        clearInterval(checkInterval);
-                        resolve();
-                    }
-                }, 100);
-            });
-        }
-
-        async function start() {
-            await waitForEngine();
-            console.log('Engine loaded');
-
-            const canvas = document.getElementById('artCanvas');
-            const tokenInput = document.getElementById('tokenInput');
-            const hashInput = document.getElementById('hashInput');
-            const renderBtn = document.getElementById('renderBtn');
-            const randomBtn = document.getElementById('randomBtn');
-            const aboutBtn = document.getElementById('aboutBtn');
-            const mintBtn = document.getElementById('mintBtn');
-            const statusDiv = document.getElementById('status');
-            const intensityBar = document.getElementById('intensityBar');
-            const intensityPercent = document.getElementById('intensityPercent');
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const tokenIdParam = urlParams.get('tid') || '1';
-            tokenInput.value = tokenIdParam;
-
-            let currentSession = null;
-            let updateInterval = null;
-
-            function updateIntensityUI(intensity) {
-                const percent = Math.floor(intensity * 100);
-                intensityBar.style.width = `${percent}%`;
-                intensityPercent.textContent = `${percent}%`;
-            }
-
-            function updateTraitsUI(result) {
-                if (!result || !result.traits) return;
-                const t = result.traits;
-                document.getElementById('traitEngine').textContent = t.engineType || '?';
-                document.getElementById('traitEngineVar').textContent = t.engineVariant || '?';
-                document.getElementById('traitRarity').textContent = t.rarityClass || '?';
-                document.getElementById('traitArchetype').textContent = t.archetype || '?';
-                document.getElementById('traitAnchor').textContent = t.anchorForm || '?';
-                document.getElementById('traitDriver').textContent = t.primaryDriver || '?';
-                document.getElementById('traitSpatial').textContent = t.spatialBehavior || '?';
-                document.getElementById('traitFailure').textContent = t.failureMode || '?';
-                document.getElementById('traitAnomaly').textContent = t.anomalyClass || 'None';
-                document.getElementById('traitMicro').textContent = t.microEvent || 'None';
-                document.getElementById('traitES').textContent = result.eventScore || '0';
-                const canonicalInt = document.getElementById('traitCanonicalInt');
-                if (canonicalInt) canonicalInt.textContent = result.canonicalIntensity ? result.canonicalIntensity.toFixed(3) : '—';
-            }
-
-            function startLiveMode() {
-                const tokenId = tokenInput.value.trim() || '1';
-                const txHash = hashInput.value.trim() || '0xminiapp';
-                statusDiv.innerHTML = 'LIVE MODE ACTIVE';
-
-                if (updateInterval) clearInterval(updateInterval);
-                if (currentSession) currentSession.stop();
-
-                try {
-                    const session = DartHLGEN.createLiveSession(tokenId, txHash);
-                    currentSession = session;
-                    session.startAnimation(canvas);
-
-                    const canonical = session.getCanonical();
-                    updateTraitsUI(canonical);
-
-                    updateInterval = setInterval(() => {
-                        if (currentSession && currentSession.getDisplayIntensity) {
-                            const intensity = currentSession.getDisplayIntensity();
-                            updateIntensityUI(intensity);
-                        }
-                    }, 50);
-
-                    statusDiv.innerHTML = 'LIVE — PRESSURE SENSITIVE';
-                } catch(e) {
-                    console.error(e);
-                    statusDiv.innerHTML = 'ERROR: ' + e.message;
-                    const result = DartHLGEN.renderCanonical(tokenId, txHash);
-                    DartHLGEN.drawToCanvas(canvas, result);
-                    updateTraitsUI(result);
-                    updateIntensityUI(result.canonicalIntensity);
-                    statusDiv.innerHTML = 'CANONICAL MODE';
-                }
-            }
-
-            function randomToken() {
-                const randomId = Math.floor(Math.random() * 9999) + 1;
-                tokenInput.value = randomId;
-                startLiveMode();
-                const url = new URL(window.location);
-                url.searchParams.set('tid', randomId);
-                window.history.pushState({}, '', url);
-            }
-
-            function openAbout() {
-                window.location.href = 'about.html';
-            }
-
-            async function mintToken() {
-                const tokenId = tokenInput.value.trim() || '1';
-                statusDiv.innerHTML = `Preparing mint for token #${tokenId}...`;
+        
+        <!-- ═══════════════════════════════════════ -->
+        <!-- MINT TAB — BLIND MINT AT 0.0008 ETH   -->
+        <!-- ═══════════════════════════════════════ -->
+        <div class="tab-panel active" id="panel-mint">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">BLIND MINT</div>
+                    <div class="wallet-status" id="walletStatus">
+                        <div class="wallet-dot" id="walletDot"></div>
+                        <span id="walletAddress">Not connected</span>
+                        <button class="connect-btn" id="connectBtn">CONNECT</button>
+                    </div>
+                </div>
                 
-                try {
-                    const provider = await sdk.wallet.getEthereumProvider();
-                    const accounts = await provider.request({ method: 'eth_requestAccounts' });
-                    
-                    statusDiv.innerHTML = `Connected: ${accounts[0].slice(0,6)}... Minting #${tokenId}...`;
-                    
-                    // TODO: Replace with your actual smart contract call
-                    // const contract = new ethers.Contract(contractAddress, abi, provider);
-                    // await contract.mint(tokenId);
-                    
-                    statusDiv.innerHTML = `✨ Mint for token #${tokenId} coming soon. Contract not deployed.`;
-                } catch(e) {
-                    statusDiv.innerHTML = `Mint error: ${e.message}`;
-                }
-            }
-
-            renderBtn.onclick = startLiveMode;
-            randomBtn.onclick = randomToken;
-            aboutBtn.onclick = openAbout;
-            mintBtn.onclick = mintToken;
-            tokenInput.onkeypress = (e) => { if (e.key === 'Enter') startLiveMode(); };
-
-            startLiveMode();
-            await sdk.actions.ready();
-            console.log('Mini App ready signal sent');
-        }
-
-        start();
-    </script>
+                <!-- Blind mint preview image -->
+                <img src="preview-blind.png" alt="Blind Mint Preview" class="blind-mint-art" id="blindMintImage">
+                
+                <div class="mint-info">
+                    <div class="mint-price">0.0008 <span>ETH</span></div>
+                    <div class="mint-supply" id="mintSupply">Loading supply...</div>
+                </div>
+                
+                <button class="mint-btn" id="mintBtn" disabled>CONNECT WALLET TO MINT</button>
+                
+                <div class="blind-note">
+                    ◉ <span>BLIND MINT</span> — Art revealed after mint · Deterministic from seed · No preview until reveal
+                </div>
+                
+                <div class="status" id="mintStatus">
+                    READY <span class="cursor"></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ═══════════════════════════════════════ -->
+        <!-- VIEWER TAB — VIEW YOUR MINTED TOKENS  -->
+        <!-- ═══════════════════════════════════════ -->
+        <div class="tab-panel" id="panel-viewer">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">TOKEN VIEWER</div>
+                    <div class="version-badge" id="versionBadge">v1.9.1</div>
+                </div>
+                
+                <div class="viewer-input-group">
+                    <input type="text" id="viewerTokenInput" placeholder="TOKEN ID">
+                    <button id="viewerLoadBtn">⟳ LOAD</button>
+                </div>
+                
+                <div class="token-grid" id="tokenGrid">
+                    <!-- Populated dynamically -->
+                </div>
+                
+                <canvas id="viewerCanvas" width="640" height="640"></canvas>
+                
+                <div class="token-id-display" id="viewerTokenDisplay" style="display: none;">
+                    TOKEN #<span id="displayTokenId">—</span>
+                </div>
+                <div class="seed-display" id="viewerSeedDisplay" style="display: none;">
+                    SEED: <span id="displaySeed">—</span>
+                </div>
+                
+                <div class="intensity-section">
+                    <div class="intensity-label">
+                        <span>LIVE INTENSITY</span>
+                        <span><span id="intensityPercent">0%</span><span id="fetchStatus" class="fetch-status"></span></span>
+                    </div>
+                    <div class="intensity-bar-container">
+                        <div class="intensity-bar-fill" id="intensityBar" style="width: 0%;"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                        <span class="mode-badge" id="modeBadge">STATIC</span>
+                        <span style="font-size: 9px; color: #666688;">PHASE: <span id="pressureStage">—</span></span>
+                    </div>
+                    <div id="bootIndicator" class="boot-indicator" style="display: none;"></div>
+                    <div id="engineIdentity" class="engine-identity"></div>
+                </div>
+                
+                <div class="traits-panel">
+                    <div class="traits-title">TOKEN TRAITS</div>
+                    <div class="traits-grid" id="traitsGrid">
+                        <div class="trait-item"><span>ENGINE:</span> <span id="traitEngine">—</span></div>
+                        <div class="trait-item"><span>VARIANT:</span> <span id="traitEngineVar">—</span></div>
+                        <div class="trait-item"><span>RARITY:</span> <span id="traitRarity">—</span></div>
+                        <div class="trait-item"><span>ARCHETYPE:</span> <span id="traitArchetype">—</span></div>
+                        <div class="trait-item"><span>ANCHOR:</span> <span id="traitAnchor">—</span></div>
+                        <div class="trait-item"><span>DRIVER:</span> <span id="traitDriver">—</span></div>
+                        <div class="trait-item"><span>SPATIAL:</span> <span id="traitSpatial">—</span></div>
+                        <div class="trait-item"><span>FAILURE:</span> <span id="traitFailure">—</span></div>
+                        <div class="trait-item"><span>ANOMALY:</span> <span id="traitAnomaly">—</span></div>
+                        <div class="trait-item"><span>MICRO:</span> <span id="traitMicro">—</span></div>
+                        <div class="trait-item"><span>EVENT SCORE:</span> <span id="traitES">—</span></div>
+                        <div class="trait-item"><span>⚡ CANONICAL INT:</span> <span id="traitCanonicalInt" class="canonical-value">—</span></div>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button id="freezeBtn">❄️ FREEZE</button>
+                    <button id="testIntensityBtn">📊 TEST</button>
+                </div>
+                
+                <div class="status" id="viewerStatus">
+                    ENTER TOKEN ID OR SELECT BELOW <span class="cursor"></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PREVIEW TAB — EXPLORE ENGINE OUTPUTS  -->
+        <!-- ═══════════════════════════════════════ -->
+        <div class="tab-panel" id="panel-preview">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">ENGINE PREVIEW</div>
+                    <div class="version-badge">v1.9.1</div>
+                </div>
+                
+                <canvas id="previewCanvas" width="640" height="640"></canvas>
+                
+                <div class="controls">
+                    <input type="text" id="previewTokenInput" placeholder="TOKEN ID" value="1">
+                    <input type="text" id="previewHashInput" placeholder="TX HASH / SEED" value="0xabc123">
+                    <button id="previewRenderBtn">⟳ RENDER</button>
+                    <button id="previewRandomBtn">🎲 RANDOM</button>
+                </div>
+                
+                <div class="status" id="previewStatus">
+                    EXPLORE ENGINE OUTPUTS — NOT A MINT <span class="cursor"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <script src="engine.js"></script>
+    <script>
+        // ============================================================
+        // DART GENXL MINI-APP — v1.9.1
+        // Tabs: Blind Mint · Viewer · Preview
+        // ============================================================
+        
+        // ── TAB SWITCHING ──
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabPanels = document.querySelectorAll('.tab-panel');
+        
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabPanels.forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(`panel-${btn.dataset.tab}`).classList.add('active');
+            });
+        });
+        
+        // ═══════════════════════════════════════
+        // MINT TAB LOGIC
+        // ═══════════════════════════════════════
+        
+        const MINT_PRICE = 0.0008; // ETH
+        const CONTRACT_ADDRESS = '0x_YOUR_CONTRACT_ADDRESS_HERE_'; // TODO: Replace
+        
+        let walletConnected = false;
+        let walletAddress = '';
+        let isMinting = false;
+        
+        const walletDot = document.getElementById('walletDot');
+        const walletAddressSpan = document.getElementById('walletAddress');
+        const connectBtn = document.getElementById('connectBtn');
+        const mintBtn = document.getElementById('mintBtn');
+        const mintStatus = document.getElementById('mintStatus');
+        const mintSupplySpan = document.getElementById('mintSupply');
+        
+        function updateWalletUI() {
+            if (walletConnected) {
+                walletDot.classList.add('connected');
+                walletAddressSpan.textContent = `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`;
+                connectBtn.textContent = 'DISCONNECT';
+                mintBtn.textContent = `◉ BLIND MINT · ${MINT_PRICE} ETH`;
+                mintBtn.disabled = false;
+            } else {
+                walletDot.classList.remove('connected');
+                walletAddressSpan.textContent = 'Not connected';
+                connectBtn.textContent = 'CONNECT';
+                mintBtn.textContent = 'CONNECT WALLET TO MINT';
+                mintBtn.disabled = true;
+            }
+        }
+        
+        async function connectWallet() {
+            // TODO: Integrate with Farcaster wallet / RainbowKit / Wagmi
+            // This is a placeholder — replace with actual wallet connection
+            mintStatus.innerHTML = `CONNECTING... <span class="cursor"></span>`;
+            
+            try {
+                // Example with ethers.js:
+                // const provider = new ethers.BrowserProvider(window.ethereum);
+                // const accounts = await provider.send('eth_requestAccounts', []);
+                // walletAddress = accounts[0];
+                // walletConnected = true;
+                
+                // Placeholder for demo:
+                walletAddress = '0x' + Math.random().toString(16).slice(2, 42);
+                walletConnected = true;
+                updateWalletUI();
+                mintStatus.innerHTML = `CONNECTED <span class="cursor"></span>`;
+                fetchSupply();
+            } catch (e) {
+                mintStatus.innerHTML = `CONNECTION FAILED <span class="cursor"></span>`;
+            }
+        }
+        
+        function disconnectWallet() {
+            walletConnected = false;
+            walletAddress = '';
+            updateWalletUI();
+            mintStatus.innerHTML = `DISCONNECTED <span class="cursor"></span>`;
+        }
+        
+        async function fetchSupply() {
+            // TODO: Read from contract
+            // const supply = await contract.totalSupply();
+            // mintSupplySpan.textContent = `${supply} / 10000 minted`;
+            mintSupplySpan.textContent = `Supply: — / 10000 minted`;
+        }
+        
+        async function handleMint() {
+            if (!walletConnected || isMinting) return;
+            
+            isMinting = true;
+            mintBtn.textContent = '◉ MINTING...';
+            mintBtn.classList.add('minting');
+            mintBtn.disabled = true;
+            mintStatus.innerHTML = `CONFIRM TRANSACTION IN WALLET... <span class="cursor"></span>`;
+            
+            try {
+                // TODO: Call contract mint function
+                // const tx = await contract.mint({ value: ethers.parseEther(MINT_PRICE.toString()) });
+                // const receipt = await tx.wait();
+                // const tokenId = receipt.events[0].args.tokenId;
+                
+                // Placeholder:
+                await new Promise(r => setTimeout(r, 2000));
+                const tokenId = Math.floor(Math.random() * 10000);
+                
+                mintStatus.innerHTML = `MINTED TOKEN #${tokenId}! <span class="cursor"></span>`;
+                mintBtn.textContent = `◉ VIEW TOKEN #${tokenId}`;
+                mintBtn.classList.remove('minting');
+                mintBtn.disabled = false;
+                isMinting = false;
+                
+                // Switch to viewer tab with this token
+                setTimeout(() => {
+                    document.querySelector('[data-tab="viewer"]').click();
+                    document.getElementById('viewerTokenInput').value = tokenId;
+                    loadViewerToken(tokenId);
+                }, 1500);
+                
+            } catch (e) {
+                mintStatus.innerHTML = `MINT FAILED <span class="cursor"></span>`;
+                mintBtn.textContent = `◉ BLIND MINT · ${MINT_PRICE} ETH`;
+                mintBtn.classList.remove('minting');
+                mintBtn.disabled = false;
+                isMinting = false;
+            }
+        }
+        
+        connectBtn.addEventListener('click', () => {
+            if (walletConnected) disconnectWallet();
+            else connectWallet();
+        });
+        
+        mintBtn.addEventListener('click', handleMint);
+        
+        // ═══════════════════════════════════════
+        // VIEWER TAB LOGIC
+        // ═══════════════════════════════════════
+        
+        let viewerSession = null;
+        let viewerFrozen = false;
+        let viewerAnimFrame = null;
+        let viewerCanonical = null;
+        let viewerEngineStarted = false;
+        let viewerBootActive = false;
+        let viewerEngineType = null;
+        let viewerLastIntensity = 0;
+        
+        // Engine messages (same as original)
+        const engineBootMessages = {
+            "Canonical": { message: "◉ BREATHING FIELD ◉", identity: "stable · controlled · alive", trait: "breathes harmonically" },
+            "Echo": { message: "◉ FADING FROM TRAILS ◉", identity: "lagging · echoing · smeared", trait: "trails behind itself" },
+            "Rupture": { message: "◉ SNAPPING IN ◉", identity: "unstable · fracturing · tearing", trait: "shocks and fractures" }
+        };
+        
+        async function fetchSeedFromContract(tokenId) {
+            // TODO: Replace with actual contract call
+            // const seed = await contract.tokenSeeds(tokenId);
+            // return seed;
+            return DartHLGEN.getSeed(tokenId.toString(), `contract_seed_${tokenId}`);
+        }
+        
+        function stopViewerSession() {
+            viewerEngineStarted = false;
+            viewerBootActive = false;
+            document.getElementById('bootIndicator').style.display = 'none';
+            if (viewerAnimFrame) { cancelAnimationFrame(viewerAnimFrame); viewerAnimFrame = null; }
+            if (viewerSession && viewerSession.stop) { viewerSession.stop(); viewerSession = null; }
+        }
+        
+        function showViewerLoading(msg) {
+            const c = document.getElementById('viewerCanvas');
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#050508';
+            ctx.fillRect(0, 0, c.width, c.height);
+            ctx.fillStyle = '#8888aa';
+            ctx.font = '11px "Inter", monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(msg, c.width/2, c.height/2);
+        }
+        
+        function updateViewerTraits(result) {
+            if (!result || !result.traits) return;
+            const t = result.traits;
+            document.getElementById('traitEngine').textContent = t.engineType || '?';
+            document.getElementById('traitEngineVar').textContent = t.engineVariant || '?';
+            document.getElementById('traitRarity').textContent = t.rarityClass || '?';
+            document.getElementById('traitArchetype').textContent = t.archetype || '?';
+            document.getElementById('traitAnchor').textContent = t.anchorForm || '?';
+            document.getElementById('traitDriver').textContent = t.primaryDriver || '?';
+            document.getElementById('traitSpatial').textContent = t.spatialBehavior || '?';
+            document.getElementById('traitFailure').textContent = t.failureMode || '?';
+            document.getElementById('traitAnomaly').textContent = t.anomalyClass || 'None';
+            document.getElementById('traitMicro').textContent = t.microEvent || 'None';
+            document.getElementById('traitES').textContent = result.eventScore || '0';
+            document.getElementById('traitCanonicalInt').textContent = result.canonicalIntensity ? result.canonicalIntensity.toFixed(3) : '—';
+            
+            document.getElementById('displayTokenId').textContent = document.getElementById('viewerTokenInput').value;
+            document.getElementById('displaySeed').textContent = result.seed || '—';
+            document.getElementById('viewerTokenDisplay').style.display = 'block';
+            document.getElementById('viewerSeedDisplay').style.display = 'block';
+        }
+        
+        function updateViewerIntensity(intensity, isLive) {
+            const pct = Math.floor(intensity * 100);
+            document.getElementById('intensityBar').style.width = `${pct}%`;
+            document.getElementById('intensityPercent').textContent = `${pct}%`;
+            
+            let phase = '';
+            if (intensity > 0.82) phase = 'ASCENDED';
+            else if (intensity > 0.60) phase = 'AWAKENED';
+            else if (intensity > 0.35) phase = 'AWAKENING';
+            else phase = 'STIRRING';
+            document.getElementById('pressureStage').textContent = phase;
+            
+            const badge = document.getElementById('modeBadge');
+            if (isLive && !viewerBootActive) {
+                badge.textContent = phase;
+                badge.className = 'mode-badge live';
+                if (viewerEngineType === 'Echo') badge.classList.add('echo');
+                else if (viewerEngineType === 'Rupture') badge.classList.add('rupture');
+                else if (viewerEngineType === 'Canonical') badge.classList.add('canonical');
+            }
+        }
+        
+        function startViewerBoot(engineType) {
+            viewerEngineType = engineType;
+            const info = engineBootMessages[engineType] || { message: `◉ ${engineType} ENGINE ◉`, identity: 'initializing' };
+            document.getElementById('bootIndicator').textContent = info.message;
+            document.getElementById('bootIndicator').style.display = 'block';
+            document.getElementById('bootIndicator').className = `boot-indicator ${engineType.toLowerCase()}`;
+            document.getElementById('engineIdentity').textContent = info.identity;
+            document.getElementById('modeBadge').textContent = 'BOOTING';
+            document.getElementById('modeBadge').className = 'mode-badge boot';
+            viewerBootActive = true;
+            setTimeout(() => { if (viewerBootActive) { viewerBootActive = false; document.getElementById('bootIndicator').style.display = 'none'; } }, 900);
+        }
+        
+        async function loadViewerToken(tokenId) {
+            stopViewerSession();
+            document.getElementById('viewerTokenInput').value = tokenId;
+            document.getElementById('viewerStatus').innerHTML = `LOADING TOKEN #${tokenId}... <span class="cursor"></span>`;
+            showViewerLoading(`LOADING TOKEN ${tokenId}...`);
+            document.getElementById('modeBadge').textContent = 'STATIC';
+            document.getElementById('modeBadge').className = 'mode-badge static';
+            document.getElementById('bootIndicator').style.display = 'none';
+            
+            try {
+                const seed = await fetchSeedFromContract(tokenId);
+                const result = DartHLGEN.renderFromSeed(seed, tokenId.toString());
+                viewerCanonical = result;
+                
+                const canvas = document.getElementById('viewerCanvas');
+                DartHLGEN.drawToCanvas(canvas, result);
+                updateViewerTraits(result);
+                viewerEngineType = result.traits.engineType;
+                document.getElementById('engineIdentity').textContent = engineBootMessages[viewerEngineType]?.identity || '';
+                
+                // Start live mode
+                startViewerBoot(viewerEngineType);
+                const derivedHash = '0x' + seed.toString(16).padStart(64, '0');
+                viewerSession = DartHLGEN.createLiveSession(tokenId.toString(), derivedHash);
+                viewerSession.startAnimation(canvas);
+                viewerEngineStarted = true;
+                
+                function viewerLoop() {
+                    if (viewerSession && viewerEngineStarted && viewerSession.getDisplayIntensity) {
+                        const intensity = viewerSession.getDisplayIntensity();
+                        if (intensity !== undefined && intensity !== null) {
+                            updateViewerIntensity(intensity, true);
+                            viewerLastIntensity = intensity;
+                        }
+                    }
+                    viewerAnimFrame = requestAnimationFrame(viewerLoop);
+                }
+                viewerAnimFrame = requestAnimationFrame(viewerLoop);
+                
+                document.getElementById('viewerStatus').innerHTML = `TOKEN #${tokenId} · ${result.traits.engineType} · ${result.traits.rarityClass} <span class="cursor"></span>`;
+            } catch (e) {
+                showViewerLoading('LOAD FAILED');
+                document.getElementById('viewerStatus').innerHTML = `ERROR: ${e.message.slice(0, 40)} <span class="cursor"></span>`;
+            }
+        }
+        
+        function toggleViewerFreeze() {
+            viewerFrozen = !viewerFrozen;
+            const btn = document.getElementById('freezeBtn');
+            const tokenId = document.getElementById('viewerTokenInput').value.trim();
+            
+            if (viewerFrozen) {
+                btn.classList.add('active');
+                btn.textContent = '❄️ FREEZE (ON)';
+                stopViewerSession();
+                if (viewerCanonical) {
+                    DartHLGEN.drawToCanvas(document.getElementById('viewerCanvas'), viewerCanonical);
+                    document.getElementById('modeBadge').textContent = 'STATIC';
+                    document.getElementById('modeBadge').className = 'mode-badge static';
+                    document.getElementById('bootIndicator').style.display = 'none';
+                }
+            } else {
+                btn.classList.remove('active');
+                btn.textContent = '❄️ FREEZE';
+                if (tokenId) loadViewerToken(tokenId);
+            }
+        }
+        
+        document.getElementById('viewerLoadBtn').addEventListener('click', () => {
+            const tid = document.getElementById('viewerTokenInput').value.trim();
+            if (tid) loadViewerToken(tid);
+        });
+        
+        document.getElementById('freezeBtn').addEventListener('click', toggleViewerFreeze);
+        
+        document.getElementById('testIntensityBtn').addEventListener('click', async () => {
+            const status = document.getElementById('viewerStatus');
+            status.innerHTML = `TESTING INTENSITY... <span class="cursor"></span>`;
+            try {
+                const res = await fetch('https://raw.githubusercontent.com/ivxxbeats/farcaster-intensity/main/intensity.json?t=' + Date.now());
+                const data = await res.json();
+                let val = null;
+                if (typeof data.intensity === 'number') val = data.intensity;
+                else if (data.awakenedEngine?.progression) {
+                    const p = data.awakenedEngine.progression;
+                    val = { dormant: 0.15, stirring: 0.25, awakening: 0.45, awakened: 0.70, ascended: 0.90, base: 0.35 }[p] || 0.35;
+                }
+                if (val !== null) {
+                    if (viewerSession?.setLiveIntensity) viewerSession.setLiveIntensity(val);
+                    status.innerHTML = `INTENSITY: ${(val*100).toFixed(0)}% <span class="cursor"></span>`;
+                }
+            } catch(e) {
+                status.innerHTML = `FETCH FAILED <span class="cursor"></span>`;
+            }
+        });
+        
+        // ═══════════════════════════════════════
+        // PREVIEW TAB LOGIC (Original explorer)
+        // ═══════════════════════════════════════
+        
+        document.getElementById('previewRenderBtn').addEventListener('click', () => {
+            const tokenId = document.getElementById('previewTokenInput').value.trim() || '1';
+            const hash = document.getElementById('previewHashInput').value.trim() || '0xfallback';
+            document.getElementById('previewStatus').innerHTML = `RENDERING... <span class="cursor"></span>`;
+            
+            try {
+                const result = DartHLGEN.renderCanonical(tokenId, hash);
+                DartHLGEN.drawToCanvas(document.getElementById('previewCanvas'), result);
+                document.getElementById('previewStatus').innerHTML = `TOKEN ${tokenId} · ${result.traits.engineType} · ${result.traits.rarityClass} (NOT A MINT) <span class="cursor"></span>`;
+            } catch(e) {
+                document.getElementById('previewStatus').innerHTML = `RENDER FAILED <span class="cursor"></span>`;
+            }
+        });
+        
+        document.getElementById('previewRandomBtn').addEventListener('click', () => {
+            const tid = Math.floor(Math.random() * 9999) + 1;
+            const h = '0x' + Math.random().toString(36).substring(2, 10);
+            document.getElementById('previewTokenInput').value = tid;
+            document.getElementById('previewHashInput').value = h;
+            document.getElementById('previewRenderBtn').click();
+        });
+        
+        // ═══════════════════════════════════════
+        // INIT
+        // ═══════════════════════════════════════
+        
+        function waitForEngine() {
+            if (typeof DartHLGEN !== 'undefined') {
+                document.getElementById('versionBadge').textContent = `v${DartHLGEN.version}`;
+                // Initial preview render
+                document.getElementById('previewRenderBtn').click();
+            } else {
+                setTimeout(waitForEngine, 100);
+            }
+        }
+        
+        waitForEngine();
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '1') document.querySelector('[data-tab="mint"]').click();
+            if (e.key === '2') document.querySelector('[data-tab="viewer"]').click();
+            if (e.key === '3') document.querySelector('[data-tab="preview"]').click();
+        });
+    </script>
 </body>
 </html>
